@@ -14,11 +14,11 @@ CAP.set(cv.CAP_PROP_FRAME_HEIGHT, 240)
 
 # permet d'aller a un objet de couleurs dont on donne le hue
 # TODO: Vérifier l'intéret de plus de précision de couleur avec un hsv ou rgb complet
-def goTo(hue: int) -> None:
+def goTo(hsv_color: tuple[int, int, int]) -> None:
     toClose = False
     lost = False
     while(not(toClose or lost)):
-        cibleDirection = getCibleDirection(hue)
+        cibleDirection = getCibleDirection(hsv_color)
         # TODO: Verifier la distance de l'objet ne question pour toClose et pouvoir recentré le robot en "1 image"
         if(cibleDirection in range(-DIST_MAX, DIST_MAX)):
             # La cible est dans la distance de décalage accepter on peut avancer
@@ -30,7 +30,7 @@ def goTo(hue: int) -> None:
             pass
         else:
             # la cible est hors de l'écran on doit donc faire tourner le robot sur lui meme jusqu'a ce qu'il la retrouve
-            if(not(searchCible(hue))): 
+            if(not(searchCible(hsv_color))): 
                 # lost = True
                 # Error: cible perdue passage à l'operation suivante
                 pass
@@ -38,9 +38,9 @@ def goTo(hue: int) -> None:
 
  
 # fait faire un tour sur lui meme haut robot il s'arrete quand il aligne la cible au centre de l'écran il renvoie true si il la trouve false si il fait un tour complet sans succes
-def searchCible(hue: int) -> bool:
+def searchCible(hsv_color: tuple[int, int, int]) -> bool:
     rotation = 0
-    while(getCibleDirection(hue) == HORS_ECRAN):
+    while(getCibleDirection(hsv_color) == HORS_ECRAN):
         if(rotation >= 360):
             return False
         mv.turn(5)
@@ -49,8 +49,8 @@ def searchCible(hue: int) -> bool:
 
         
 # donne l'emplacement de la cible pour la camera 
-def getCibleDirection(hue: int) -> int:
-    binaryMap, centroid = getObjectMap(hue)
+def getCibleDirection(hsv_color: tuple[int, int, int]) -> int:
+    binaryMap, centroid = getObjectMap(hsv_color)
     if centroid is None:
         return HORS_ECRAN
 
@@ -59,22 +59,24 @@ def getCibleDirection(hue: int) -> int:
     # offset par rapport au centre (>0 = à droite, <0 = à gauche)
     return int(cx - (width // 2))
 
-def getObjectMap(hue: int): # image opencv
+def getObjectMap(hsv_color: tuple[int, int, int]): # image opencv
     ret, frame = CAP.read()
     if not ret or frame is None:
         print("error lecture")
         return np.zeros((240, 320), dtype=np.uint8), None
 
-    # s'assurer de la taille attendue
-    frame = cv.resize(frame, (320, 240))
-
     hsv = cv.cvtColor(frame, cv.COLOR_BGR2HSV)
+    
+    hue = hsv_color[0]
+    sat = hsv_color[1]
+    val = hsv_color[2]
 
     # calculer lower/upper en modulo sur 0-179 (OpenCV hue range)
     lower = int((hue - HUE_MAX) % 180)
     upper = int((hue + HUE_MAX) % 180)
 
     # si pas de wrap-around -> une seule plage, sinon deux plages à combiner
+    # TODO: Ajouter les la gestion de saturation et value
     if lower <= upper:
         mask = cv.inRange(hsv, np.array([lower, 60, 60]), np.array([upper, 255, 255]))
     else:
