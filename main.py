@@ -1,7 +1,9 @@
-import colorDetection as cd
+import SuivieCouleur as sc
+import SuivieLigne as sl
 import mouvement as mv
+
 
 # Script principale 
 mv.forward(5)
-cd.goTo(tuple[0, 150, 150])
+sc.goTo((140, 150, 150))
 mv.backward(5)

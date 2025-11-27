@@ -7,7 +7,7 @@ DIST_MAX: int = 100
 HUE_MAX: int = 25
 ROTATION_AMOUNT: int = 5
 HORS_ECRAN: int = 10000 # valeur supérieur à la largeur de l'écran 
-CAP = cv.VideoCapture(1)
+CAP = cv.VideoCapture(0)
 CAP.set(cv.CAP_PROP_FRAME_WIDTH, 320)
 CAP.set(cv.CAP_PROP_FRAME_HEIGHT, 240)
 
@@ -82,7 +82,7 @@ def getObjectMap(hsv_color: tuple[int, int, int]): # image opencv
     else:
         mask1 = cv.inRange(hsv, np.array([lower, 60, 60]), np.array([179, 255, 255]))
         mask2 = cv.inRange(hsv, np.array([0, 60, 60]), np.array([upper, 255, 255]))
-        mask = mask1 | mask2
+        mask = cv.bitwise_or(mask1, mask2)
 
     # nettoyage rapide
     kernel = cv.getStructuringElement(cv.MORPH_ELLIPSE, (5, 5))
@@ -96,7 +96,7 @@ def getObjectMap(hsv_color: tuple[int, int, int]): # image opencv
     if contours:
         c = max(contours, key=cv.contourArea)
         if cv.contourArea(c) > 100:  # seuil pour ignorer le bruit
-            cv.drawContours(binaryMap, [c], -1, 255, -1)
+            cv.drawContours(binaryMap, [c], -1, (255, 255, 255), -1)
             M = cv.moments(c)
             if M["m00"] != 0:
                 cx = int(M["m10"] / M["m00"])
