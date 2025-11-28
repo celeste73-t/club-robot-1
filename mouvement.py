@@ -10,6 +10,8 @@ BIN1 = 17
 BIN2 = 27
 PWMB = 18
 
+TEMPS360 = 4 # remplacer par le vrai temps 360
+
 GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BCM)
 
@@ -52,28 +54,24 @@ def backward(timer: int) -> None:
     time.sleep(timer)
     print("le robot recul de " + str(timer))
     
-def turn(timer: int) -> None:
-    if(timer>0 ):
-        
+def turn(degree: int) -> None:
+    duration = abs(degree) / 360 * TEMPS360
+    
+    if(degree>0 ):
         GPIO.output(AIN1, GPIO.LOW)
         GPIO.output(AIN2, GPIO.HIGH)
         GPIO.output(BIN1, GPIO.LOW)
         GPIO.output(BIN2, GPIO.HIGH)
-        pwmA.ChangeDutyCycle(FORCE)
-        pwmB.ChangeDutyCycle(FORCE)
-        time.sleep(timer)
-
     else:
-        timer = abs(timer )
-
         GPIO.output(AIN1, GPIO.HIGH)
         GPIO.output(AIN2, GPIO.LOW)
         GPIO.output(BIN1, GPIO.HIGH)
         GPIO.output(BIN2, GPIO.LOW)
-        pwmA.ChangeDutyCycle(FORCE)
-        pwmB.ChangeDutyCycle(FORCE)
-        time.sleep(timer)
-    print("le robot tourne de " + str(timer) + "degrées")
+    pwmA.ChangeDutyCycle(FORCE)
+    pwmB.ChangeDutyCycle(FORCE)
+    time.sleep(duration)
+
+    print("le robot tourne de " + str(degree) + "degrées")
 
 turn(1)
 turn(-2)
